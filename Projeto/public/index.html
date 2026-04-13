@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetalTech • Sistema Industrial</title>
+
+    <!-- Fonte -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="login-screen" class="container">
+    
+    <!-- LADO ESQUERDO (SEM TEXTO AGORA) -->
+    <div class="left">
+        <div class="overlay"></div>
+    </div>
+
+    <!-- LADO DIREITO -->
+    <div class="right">
+        <div class="login-box">
+            <div class="logo">🏭</div>
+            <h2>MetalTech</h2>
+            <p>Sistema de Gestão Industrial</p>
+
+            <div id="login-error" style="color:red"></div>
+
+            <div class="input-group">
+                <i class="fa fa-user"></i>
+                <input id="email" type="email" placeholder="Email">
+            </div>
+
+            <div class="input-group">
+                <i class="fa fa-lock"></i>
+                <input id="senha" type="password" placeholder="Senha">
+            </div>
+
+            <button onclick="login()">ENTRAR</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div class="app" id="app" style="display:none">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <span class="sidebar-title">🏭 MetalTech</span>
+            </div>
+
+            <div style="font-size:12px;margin-top:8px">
+                <b id="user-name"></b><br>
+                <span id="user-role"></span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <button class="nav-item active" onclick="trocarView('dashboard', this)">
+                📊 Dashboard
+            </button>
+
+            <button class="nav-item" onclick="trocarView('produtos', this)">
+                📦 Produtos
+            </button>
+
+            <button class="nav-item" onclick="trocarView('producao', this)">
+                🏭 Produção
+            </button>
+
+            <button class="nav-item" onclick="trocarView('clientes', this)">
+                👥 Clientes
+            </button>
+
+            <button class="nav-item" id="menu-usuarios" style="display:none" onclick="trocarView('usuarios', this)">
+                🔐 Usuários
+            </button>
+
+        </nav>
+
+        <button onclick="logout()" style="margin:20px">Sair</button>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+        <div class="content-wrapper">
+
+            <div id="dashboard" class="view">
+                <h2>Dashboard</h2>
+                <p>Visão geral da produção</p>
+            </div>
+
+            <div id="produtos" class="view" style="display:none">
+                <h2>Produtos</h2>
+                <p>Gerencie os produtos industriais</p>
+            </div>
+
+            <div id="producao" class="view" style="display:none">
+                <h2>Produção</h2>
+                <p>Controle das ordens de produção</p>
+            </div>
+
+            <div id="clientes" class="view" style="display:none">
+                <h2>Clientes</h2>
+            </div>
+
+            <div id="usuarios" class="view" style="display:none">
+                <h2>Usuários</h2>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script>
+
+let TOKEN = null
+
+// ================= LOGIN =================
+async function login() {
+    const email = document.getElementById('email').value
+    const senha = document.getElementById('senha').value
+
+    const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha })
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+        document.getElementById('login-error').innerText = data.erro
+        return
+    }
+
+    TOKEN = data.token
+
+    document.getElementById('user-name').innerText = data.usuario.nome
+    document.getElementById('user-role').innerText = data.usuario.perfil
+
+    // liberar admin
+    if (data.usuario.perfil === 'Administrador') {
+        document.getElementById('menu-usuarios').style.display = 'block'
+    }
+
+    document.getElementById('login-screen').style.display = 'none'
+    document.getElementById('app').style.display = 'flex'
+}
+
+// ================= TROCAR TELA =================
+function trocarView(view, btn) {
+    document.querySelectorAll('.view').forEach(v => v.style.display = 'none')
+    document.getElementById(view).style.display = 'block'
+
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'))
+    btn.classList.add('active')
+}
+
+// ================= LOGOUT =================
+function logout() {
+    TOKEN = null
+    document.getElementById('app').style.display = 'none'
+    document.getElementById('login-screen').style.display = 'flex'
+}
+
+</script>
+
+</body>
+</html>
